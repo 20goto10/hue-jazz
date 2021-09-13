@@ -10,7 +10,7 @@ be able to SSH to the Hub.
 
 * Micropython is required, but it's already on the Hue, at least in the current firmware (version 1946157000). You don't really need much coding skill to work with these scripts. 
 
-* For the bulb_sync script you also need [rgbxy](https://github.com/benknight/hue-python-rgb-converter/). Whereever you put this script, you can just create a subdir called rgbxy and put that repo's __init__.py in it. 
+* For the bulb_sync script you also need [rgbxy](https://github.com/benknight/hue-python-rgb-converter/). Whereever you put this script, you can just create a subdir called rgbxy and put that repo's \_\_init\_\_.py in it. 
 
 * You will also probably need curl or wget on your Hue. I don't remember whether either one is on the Hue already, but they can be added via opkg (see [this article](https://medium.com/@rxseger/enabling-the-hidden-wi-fi-radio-on-the-philips-hue-bridge-2-0-42949f0154e1) for instructions on getting opkg running). 
 
