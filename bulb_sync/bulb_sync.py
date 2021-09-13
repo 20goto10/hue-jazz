@@ -36,8 +36,8 @@ print_commands = True
 
 # The source bulb's name in text (as saved in the Hue). This arrives in the
 # metadata for the message. You must set this correctly or you won't see 
-# any output. Easy to discover by setting debug to True.
-name_of_bulb_to_monitor = "Dining room sconce hue"
+# any output. It is easy to discover by setting the above debug options to True.
+name_of_bulb_to_monitor = "Dining room hue bulb" # for example
 
 # Specify the Hue bulb's color Gamut here, identified as GamutA, GamutB, or GamutC.
 # This can be determined by inspecting the bulb's status messages (and 
@@ -48,14 +48,14 @@ converter = Converter(GamutC)
 
 # target bulb root of command. You will want to do some tailoring here. This should work on Openhab when you set it correctly.
 # Other HA apps use similar but different APIs.
-target_bulbs = ["DiningHand"] # I doubt your bulb is also called "DiningHand"... you can add additional bulbs to this list.
+target_bulbs = ["MyLight"] # I doubt your bulb is also called "DiningHand"... you can add additional bulbs to this list.
 # You can also trigger a cycling effect, if you want it, by including the Hue bulb (in Openhab) with a color shift, and changing
 # color_shift to True, below, and having a number_of_colors value different from the actual number of bulbs.
 
 # Should be noted, these don't actually need to be bulbs, unless you are writing a curl request to the actual item itself. 
 # Otherwise, you don't need to list every bulb as a target, unless you want to use the color shift effect. 
 # Otherwise just use a group/room/whatever in your home automation software and address the request to that. 
-openhab_url = "http://192.168.1.120:8080/"
+openhab_url = "http://lightcontroller:8080/"
 target_bulb_cmd_prefixes = []
 for bulb in target_bulbs:
   target_bulb_cmd_prefixes.append("/usr/bin/curl " + openhab_url + "rest/items/" + bulb + " -H 'Content-Type: text/plain' --data-raw")

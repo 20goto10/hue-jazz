@@ -53,8 +53,8 @@ action_map = {
               "/sensors/50:short_release:4": curl_req_for("ColLivRoomLights", "OFF"),
 
               # example: an arbitrary curl request to some outside API (i.e. control some Tuya/SmartHome/Govee/whatever unsupported by OpenHab)
-              "/sensors/14:short_release:1": "curl --insecure --location --request PUT 'https://some-random-tuya-api-or-whatever' --header 'My-API-Key: blahblah' -- developer-api.doyoureallytrustthissystem.com/v1/devices/control' 'Content-Type: application/json' --data-raw '{\"device\": \"AA:BB:A4:C1:38:FD:F0:ED\",\"model\": \"H6143\",\"cmd\": {\"name\": \"turn\", \"value\": \"on\"}}'",
-              "/sensors/14:short_release:4": "curl --insecure --location --request PUT 'https://some-random-tuya-api-or-whatever' --header 'My-API-Key: blahblah' -- developer-api.doyoureallytrustthissystem.com/v1/devices/control' 'Content-Type: application/json' --data-raw '{\"device\": \"AA:BB:A4:C1:38:FD:F0:ED\",\"model\": \"H6143\",\"cmd\": {\"name\": \"turn\", \"value\": \"on\"}}'",
+              "/sensors/14:short_release:1": "curl --insecure --location --request PUT 'https://some-random-tuya-api-or-whatever' --header 'My-API-Key: blahblah' -- developer-api.doyoureallytrustthissystem.com/v1/devices/control' 'Content-Type: application/json' --data-raw '{\"device\": \"AA:BB:CC:DD:EE:FF:11:22\",\"model\": \"Banana\",\"cmd\": {\"name\": \"turn\", \"value\": \"on\"}}'",
+              "/sensors/14:short_release:4": "curl --insecure --location --request PUT 'https://some-random-tuya-api-or-whatever' --header 'My-API-Key: blahblah' -- developer-api.doyoureallytrustthissystem.com/v1/devices/control' 'Content-Type: application/json' --data-raw '{\"device\": \"AA:BB:CC:DD:EE:FF:11:22\",\"model\": \"Banana\",\"cmd\": {\"name\": \"turn\", \"value\": \"off\"}}'",
              }
 # END SETTINGS
 
