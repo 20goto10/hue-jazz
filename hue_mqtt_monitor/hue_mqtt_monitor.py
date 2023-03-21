@@ -96,25 +96,6 @@ def handle_sensor(topic, msg):
    except Exception as e: 
       print("handle_sensor error:", str(e))
 
-def rgb_to_hsv(r, g, b):
-    maxc = max(r, g, b)
-    minc = min(r, g, b)
-    v = maxc
-    if minc == maxc:
-        return 0.0, 0.0, v
-    s = (maxc-minc) / maxc
-    rc = (maxc-r) / (maxc-minc)
-    gc = (maxc-g) / (maxc-minc)
-    bc = (maxc-b) / (maxc-minc)
-    if r == maxc:
-        h = bc-gc
-    elif g == maxc:
-        h = 2.0+rc-bc
-    else:
-        h = 4.0+gc-rc
-    h = (h/6.0) % 1.0
-    return h, s, v
-
 
 def handle_data_message(topic, msg):
    try:
@@ -127,37 +108,8 @@ def handle_data_message(topic, msg):
 
 
       # your handler stuff goes here -- one would probably want it to be a bit more sophisticated, but this is just a POC
-      if "metadata" in item and "name" in item["metadata"]:
-        if item["metadata"]["name"] == name_of_bulb_to_monitor:
-          if print_matched_messages:
-            print(topic, json.dumps(item, indent=2)) # you may want to remove the "indent" option to save screen space
-
-          if "color" in item:
-            # get color info from the reported changes 
-            colors = item["color"]["xy"]
-            bri = item["dimming"]["brightness"]
-            bri_s = str(int(bri))
-            is_on = item["on"]["on"] # not a typo
-
-            # there's probably a way to go from XY straight to HSB, 
-            # but eh, we're in no rush
-            r,g,b = converter.xy_to_rgb(colors["x"], colors["y"], bri)
-            h,s,v = rgb_to_hsv(r,g,b)
-            h = h * 360.0 
-            s = s * 100.0
-
-            for cmd_prefix in target_bulb_cmd_prefixes:
-              if color_shift:
-                h = (int (h + phase_shift_angle)) % 360  
-              if not is_on:
-                color_string = "OFF" # sending any colors will trigger OpenHAB to turn it on, but Hue treats color and on/off independently, so this forces it to recognize on/off
-              else:
-                color_string = str(int(h)) + ","  + str(int(s)) + "," + bri_s
-              cmd = cmd_prefix + " " + color_string
-              cmd_list.append(cmd)
-
       # sensor button handling
-      elif "data" in item and "button" in item["data"][0]["data"][0]:
+      if "data" in item and "button" in item["data"][0]["data"][0]:
         id_v1 = item["data"][0]["data"][0]["id_v1"]
         last_event = item["data"][0]["data"][0]["button"]["last_event"]
         control_id = device_map[item["data"][0]["data"][0]["id"]]
@@ -174,7 +126,7 @@ def handle_data_message(topic, msg):
           print(topic, json.dumps(item, indent=2)) # you may want to remove the "indent" option to save screen space
 
       # execute the commands 
-      for cmd in flatten(cmd_list):
+      for cmd in cmd_list:
         if print_commands:
           print("* Issuing command: %s" % cmd)
         try:
