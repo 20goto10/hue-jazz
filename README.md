@@ -3,7 +3,7 @@ Assorted scripts and tricks for rooted Philips Hue hubs (and some related IOT).
 
 ### Recent Updates
 The latest version of the Hue firmware breaks the older Hue-Jazz remote control handling. Or maybe it's the remote controls' firmware. In any case, messages for
-every button are sent each time you press one. That fooled the monitoring script into thinking you're pressing every button every time.
+every button are sent each time you press one. That fooled the monitoring script into thinking you're pressing every button every time, causing the non-Hue lights to go berzerk.
 
 I've updated to monitoring a different MQTT topic that can tell the difference again. If you use Hue-Jazz (and I don't know if anyone actually does--would love to know), then you'll need to update the script... or avoid the firmware update(s). The new version first assembles the entire list of dimmers from the appropriate MQTT topic and then uses them to map the individual button keys. This is unavoidable as the "publish" topic that this code relies upon does not say which button of a remote it's on except by its UUID (each button has a unique UUID). Copying all those UUIDs into the config seems like a pain so instead I deduced how they're mapped.
 
