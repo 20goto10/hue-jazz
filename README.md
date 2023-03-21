@@ -1,12 +1,23 @@
 # hue-jazz
 Assorted scripts and tricks for rooted Philips Hue hubs (and some related IOT). 
 
-### Preqrequisites
+### Recent Updates
+The latest version of the Hue firmware breaks the older Hue-Jazz remote control handling. Or maybe it's the remote controls' firmware. In any case, messages for
+every button are sent each time you press one. Thus I've recently updated to a somewhat more robust system that can tell the difference again. If you use this 
+(and I don't know if anyone does--would love to know), then you'll need to update the code... or avoid the firmware update(s). The new version first assembles the entire list of dimmers from the appropriate MQTT topic and then uses them to map the individual button keys. This is unavoidable as the "publish" topic that this code relies upon does not say which button of a remote it's on except by its UUID (each button has a unique UUID). Copying all those UUIDs into the config seems like a pain so instead I deduced how they're mapped.
+
+Note that Matter isn't going to make Hue remote controls work for controlling other devices. There still needs to be some handler in the Hub to translate the
+remote requests into outside requests. However I have thought of a few other ways of doing this on rooted hubs which might be easier to maintain... will look
+into that when I'm more alert.
+
+Long story short, your old settings will work but the rest of the code must be updated. I really need to externalize the config... my apologies.
+
+### Prerequisites
 The stuff here is designed to operate on a rooted Hue hub. You must first
 be able to SSH to the Hub. 
 
 * The best instructions for rooting the Hub are located here: 
-[Philips Hue 2.1 enabling wifi](https://blog.andreibanaru.ro/2018/03/27/philips-hue-2-1-enabling-wifi/). You can stop after you've got SSH working. (You don't need a wifi adapter for my scripts, and with the latest Hue firmware, the wi-fi steps won't work anymore until someone can compile a working device driver; I'm trying.) Rooting the Hue Hub is fairly simple but cannot be performed without taking apart the unit and having the appropriate tools and a bit of basic hardware-hacking know-how. It would make for a good learning project if you have a spare Hue hub. Prepare to say "eureka!" if you've never done this sort of thing before. If you're into this sort of thing it may become addictive. (By the way, I didn't use a soldering iron, I just stuck the serial connection wires in and made sure not to jiggle anything once I got the console and shorted the flash chip as instructed.) The unit seems fairly resilient but please do not blame me if you brick it.
+[Philips Hue 2.1 enabling wifi](https://blog.andreibanaru.ro/2018/03/27/philips-hue-2-1-enabling-wifi/). You can stop after you've got SSH working. (You don't need a wifi adapter for my scripts, and with the latest Hue firmware, the wi-fi steps won't work anymore until someone can compile a working device driver; I'm trying.) Rooting the Hue Hub is fairly simple but cannot be performed without taking apart the unit and having the appropriate tools and a bit of basic hardware-hacking know-how. It would make for a good learning project if you have a spare Hue hub--and it is much easier than wiring new light switches. Prepare to say "eureka!" if you've never done this sort of thing before. It may become addictive. (By the way, I didn't use a soldering iron, I just stuck the serial connection wires in and made sure not to jiggle anything once I got the console and shorted the flash chip as instructed.) The unit seems fairly resilient but please do not blame me if you brick it.
 
 * Micropython is required, but it's already on the Hue, at least in the current firmware (version 1946157000). You don't really need much coding skill to work with these scripts. 
 

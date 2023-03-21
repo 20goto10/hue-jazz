@@ -15,7 +15,7 @@ import zlib
 import os
 import math
 
-VERSION = "0.00000001"
+VERSION = "0.00000002"
 
 # SETTINGS:
 # Settings that you may need to modify. 
@@ -23,9 +23,10 @@ VERSION = "0.00000001"
 
 # debug options: have it print messages for all the stuff it ignores, or all the stuff that it actually matches.
 # I ship this with debugging on because you need some info from the MQTT messages, but once it's working you'll want this off.
-print_skipped_messages = False
+print_everything = True
+print_skipped_messages = False 
 print_matched_messages = True
-print_commands = False
+print_commands = True 
 
 # This is set up for Openhab, but it could be anything you want that has a reachable API... or fire off some other command altogether.
 openhab_url = "http://mylightcontroller:8080/"
@@ -58,41 +59,133 @@ action_map = {
              }
 # END SETTINGS
 
+device_map = {}
+
+async def device_listener(mqtt):
+    topic = "dt/clip/device/+"
+    async for msg in mqtt.subscribe(topic):
+        handle_sensor(topic, msg)
+
 async def data_listener(topic, mqtt):
     async for msg in mqtt.subscribe(topic):
-        handle_data_message(topic, msg)                          
+        handle_data_message(topic, msg)
                   
 async def main():
     async with Mqtt("pymosquitto") as m:
         tasks = []                                     
-        tasks.append(asyncio.create_task(data_listener("dt/clip/+/+",m)))
+        tasks.append(asyncio.create_task(device_listener(m)))
+        tasks.append(asyncio.create_task(data_listener("cmd/clip/event/publish",m)))
         await asyncio.gather(*tasks)
 
-def handle_data_message(topic, msg):
+
+def handle_sensor(topic, msg):
+   try:
       item = json.loads(zlib.decompress(msg["payload"], -15).decode())
+      if print_everything:
+        print("device found", topic, item)
+      if item["product_data"]["product_name"] == "Hue dimmer switch":
+        if "services" in item:
+          bulbs = item["services"]
+          counter = 1 
+          for service in bulbs:
+            if service["rtype"] == "button":
+              if print_everything:
+                print("Adding", service["rtype"], service["rid"])
+              device_map[service["rid"]] = str(counter)
+              counter = counter + 1
+   except Exception as e: 
+      print("handle_sensor error:", str(e))
+
+def rgb_to_hsv(r, g, b):
+    maxc = max(r, g, b)
+    minc = min(r, g, b)
+    v = maxc
+    if minc == maxc:
+        return 0.0, 0.0, v
+    s = (maxc-minc) / maxc
+    rc = (maxc-r) / (maxc-minc)
+    gc = (maxc-g) / (maxc-minc)
+    bc = (maxc-b) / (maxc-minc)
+    if r == maxc:
+        h = bc-gc
+    elif g == maxc:
+        h = 2.0+rc-bc
+    else:
+        h = 4.0+gc-rc
+    h = (h/6.0) % 1.0
+    return h, s, v
+
+
+def handle_data_message(topic, msg):
+   try:
+      item = json.loads(msg["payload"].decode())
+
+      if print_everything:
+        print(item)
           
       cmd_list = []
-      if "button" in item:  # this might be something else for different sensor types -- I don't have any.
-        cmd = ""
-        request = item["id_v1"] + ":" + item["button"]["last_event"] + ":" + str(item["metadata"]["control_id"])
+
+
+      # your handler stuff goes here -- one would probably want it to be a bit more sophisticated, but this is just a POC
+      if "metadata" in item and "name" in item["metadata"]:
+        if item["metadata"]["name"] == name_of_bulb_to_monitor:
+          if print_matched_messages:
+            print(topic, json.dumps(item, indent=2)) # you may want to remove the "indent" option to save screen space
+
+          if "color" in item:
+            # get color info from the reported changes 
+            colors = item["color"]["xy"]
+            bri = item["dimming"]["brightness"]
+            bri_s = str(int(bri))
+            is_on = item["on"]["on"] # not a typo
+
+            # there's probably a way to go from XY straight to HSB, 
+            # but eh, we're in no rush
+            r,g,b = converter.xy_to_rgb(colors["x"], colors["y"], bri)
+            h,s,v = rgb_to_hsv(r,g,b)
+            h = h * 360.0 
+            s = s * 100.0
+
+            for cmd_prefix in target_bulb_cmd_prefixes:
+              if color_shift:
+                h = (int (h + phase_shift_angle)) % 360  
+              if not is_on:
+                color_string = "OFF" # sending any colors will trigger OpenHAB to turn it on, but Hue treats color and on/off independently, so this forces it to recognize on/off
+              else:
+                color_string = str(int(h)) + ","  + str(int(s)) + "," + bri_s
+              cmd = cmd_prefix + " " + color_string
+              cmd_list.append(cmd)
+
+      # sensor button handling
+      elif "data" in item and "button" in item["data"][0]["data"][0]:
+        id_v1 = item["data"][0]["data"][0]["id_v1"]
+        last_event = item["data"][0]["data"][0]["button"]["last_event"]
+        control_id = device_map[item["data"][0]["data"][0]["id"]]
+        request = id_v1 + ":" + last_event + ":" + control_id
 
         if request in action_map:
           cmd_list.append(action_map[request])
 
         if print_matched_messages:
           print(request) # use this to easily map as-yet unmapped buttons
+        
       else:
         if print_skipped_messages:
           print(topic, json.dumps(item, indent=2)) # you may want to remove the "indent" option to save screen space
 
       # execute the commands 
-      for cmd in cmd_list:
+      for cmd in flatten(cmd_list):
         if print_commands:
-          print("* Issuing command: " + cmd)
-        os.system(cmd)
-
+          print("* Issuing command: %s" % cmd)
+        try:
+          os.system(cmd)
+        except:
+          print("* Command failed %s" % cmd)
       sys.stdout.flush()
+   except Exception as e: 
+      print("Execution failure", str(e))
 
 asyncio.run(main())
 asyncio.get_event_loop().run_forever()
+
 
