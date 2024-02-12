@@ -1,16 +1,30 @@
 # hue-jazz
 Assorted scripts and tricks for rooted Philips Hue hubs (and some related IOT). 
 
-### Recent Updates
-The latest version of the Hue firmware breaks the older Hue-Jazz remote control handling. Or maybe it's the remote controls' firmware. In any case, messages for
-every button are sent each time you press one. That fooled the monitoring script into thinking you're pressing every button every time, causing the non-Hue lights to go berzerk.
+### Recent Updates (Updated 12 February 2024)
+The latest verison of the Hue firmware (Version: 1962154010) breaks this code again. 
+I was able to get it working after the change but have not updated this repo yet. 
+The change requires a call to the (internal) Hue API, which I'd hoped to avoid. 
+I'm intending to experiment further, and to simplify the configuration of my code, 
+but I'm not sure if there is anyone out there who's using this (or if the original Hue rooting method
+still works). So please let me know if you are interested in seeing an updated version. 
 
-I've updated to monitoring a different MQTT topic that can tell the difference again. If you use Hue-Jazz (and I don't know if anyone actually does--would love to know), then you'll need to update the script... or avoid the firmware update(s). The new version first assembles the entire list of dimmers from the appropriate MQTT topic and then uses them to map the individual button keys. This is unavoidable as the "publish" topic that this code relies upon does not say which button of a remote it's on except by its UUID (each button has a unique UUID). Copying all those UUIDs into the config seems like a pain so instead I deduced how they're mapped.
+Listening in on the MQTT topics is still the lowest latency solution I've found for handling controlling
+non-Hue devices. I experimented with the "eventstream" that CLIP v2 offers, but it doesn't publish fast
+enough (I think it caps responses at once per second). This works fine for some purposes but not mine.
 
-Note that Matter isn't going to make Hue remote controls work for controlling other devices. There still needs to be some handler in the Hub to translate the
-remote requests into outside requests. However I have thought of a few other ways of doing this on rooted hubs which might be easier to maintain, such as forwarding the MQTT messages off the hub completely to a different device (freeing us from the tyranny of [Micro]python). There might even be hope for non-rooted hubs... I will look into all that when I'm more alert.
+However, a potential solution might be to alter MQTT to forward locally and listen to the messages on
+other devices. You could then have a listener running elsewhere that isn't limited by the Hue hub hardware.
+I haven't done that mainly because it's more fun to run my own software on the hub.
 
-Long story short, your old settings will work but the rest of the code must be updated. I really need to externalize the config... my apologies.
+# New Hue irritation
+I reacted with dread when Hue announced you would now need an account with Hue to use the app. 
+That's exactly the kind of stupid design decision that made me avoid all those cheapo wi-fi bulbs that take
+10 seconds to response to a request, and instead pay the exorbitant costs of the Hue ecosystem. 
+I noticed that the MQTT config on the device now reaches out to meet-hue.com.
+(Maybe it already did and I just didn't notice.) Anyway, you can disable that on a rooted hub, which
+is good if you, like me, do not need to control lights when you're not home, and if you would rather not be putting
+personal data in places it doesn't need to be.
 
 ### Prerequisites
 The stuff here is designed to operate on a rooted Hue hub. You must first
